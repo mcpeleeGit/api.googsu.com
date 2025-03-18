@@ -13,6 +13,31 @@ spring:
     console:
       enabled: true
       path: /h2-console
+  security:
+    oauth2:
+      client:
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+        registration:
+          kakao:
+            client-id: ${KAKAO_CLIENT_ID}
+            client-secret: ${KAKAO_CLIENT_SECRET}
+            redirect-uri: http://localhost:8080/login/oauth2/code/kakao
+            authorization-grant-type: authorization_code
+            client-authentication-method: client_secret_post
+            client-name: Kakao
+            scope:
+              - profile_nickname
+              - account_email
+              - profile_image
 
 server:
   port: 8080
+
+jwt:
+  secret: ${JWT_SECRET:dG9rZW5zZWNyZXRrZXl0aGF0aXNhdGxlYXN0MzJjaGFyYWN0ZXJzbG9uZ2ZvcnNlY3VyaXR5}
+  expiration: 86400000 # 24 hours
