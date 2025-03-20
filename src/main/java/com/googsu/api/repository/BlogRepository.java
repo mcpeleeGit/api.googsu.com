@@ -8,9 +8,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface BlogRepository extends JpaRepository<Blog, Long> {
-    @Query("SELECT b FROM Blog b WHERE b.isDeleted = false ORDER BY b.createdAt DESC")
+    @Query("SELECT b FROM Blog b WHERE b.deleted = false ORDER BY b.createdAt DESC")
     Page<Blog> findAllNotDeleted(Pageable pageable);
 
-    @Query("SELECT b FROM Blog b WHERE b.member.id = :memberId AND b.isDeleted = false ORDER BY b.createdAt DESC")
+    @Query("SELECT b FROM Blog b WHERE b.member.id = :memberId AND b.deleted = false ORDER BY b.createdAt DESC")
     Page<Blog> findByMemberIdNotDeleted(@Param("memberId") Long memberId, Pageable pageable);
 }

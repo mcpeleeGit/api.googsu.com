@@ -8,11 +8,13 @@ import com.googsu.api.repository.BlogRepository;
 import com.googsu.api.repository.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -22,72 +24,62 @@ public class BlogService {
     private final MemberRepository memberRepository;
 
     @Transactional
-    public BlogDto createBlog(Long memberId, BlogRequestDto requestDto) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new EntityNotFoundException("회원을 찾을 수 없습니다."));
+    public BlogDto createBlog(BlogDto blogDto, Long memberId) {
+        log.info("Creating blog with memberId: {}", memberId);
 
-        Blog blog = new Blog();
-        blog.setTitle(requestDto.getTitle());
-        blog.setContent(requestDto.getContent());
-        blog.setMember(member);
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("Member not found with id: " + memberId));
+
+        log.info("Found member: {}", member.getName());
+
+        Blog blog = Blog.builder()
+                .title(blogDto.getTitle())
+                .content(blogDto.getContent())
+                .member(member)
+                .build();
 
         Blog savedBlog = blogRepository.save(blog);
-        return convertToDto(savedBlog);
+        log.info("Blog created successfully with id: {}", savedBlog.getId());
+
+        return BlogDto.from(savedBlog);
     }
 
     @Transactional
-    public BlogDto updateBlog(Long blogId, Long memberId, BlogRequestDto requestDto) {
+    public BlogDto updateBlog(Long blogId, BlogDto blogDto) {
         Blog blog = blogRepository.findById(blogId)
-                .orElseThrow(() -> new EntityNotFoundException("블로그를 찾을 수 없습니다."));
+                .orElseThrow(() -> new EntityNotFoundException("Blog not found with id: " + blogId));
 
-        if (!blog.getMember().getId().equals(memberId)) {
-            throw new IllegalStateException("해당 블로그를 수정할 권한이 없습니다.");
-        }
+        blog.update(blogDto.getTitle(), blogDto.getContent());
+        log.info("Blog updated successfully with id: {}", blogId);
 
-        blog.setTitle(requestDto.getTitle());
-        blog.setContent(requestDto.getContent());
-
-        Blog updatedBlog = blogRepository.save(blog);
-        return convertToDto(updatedBlog);
+        return BlogDto.from(blog);
     }
 
     @Transactional
-    public void deleteBlog(Long blogId, Long memberId) {
+    public void deleteBlog(Long blogId) {
         Blog blog = blogRepository.findById(blogId)
-                .orElseThrow(() -> new EntityNotFoundException("블로그를 찾을 수 없습니다."));
+                .orElseThrow(() -> new EntityNotFoundException("Blog not found with id: " + blogId));
 
-        if (!blog.getMember().getId().equals(memberId)) {
-            throw new IllegalStateException("해당 블로그를 삭제할 권한이 없습니다.");
-        }
-
-        blog.setDeleted(true);
-        blogRepository.save(blog);
+        blog.delete();
+        log.info("Blog deleted successfully with id: {}", blogId);
     }
 
     public Page<BlogDto> getAllBlogs(Pageable pageable) {
+        log.info("Getting all blogs with pagination");
         return blogRepository.findAllNotDeleted(pageable)
-                .map(this::convertToDto);
+                .map(BlogDto::from);
     }
 
     public Page<BlogDto> getMemberBlogs(Long memberId, Pageable pageable) {
+        log.info("Getting blogs for memberId: {}", memberId);
         return blogRepository.findByMemberIdNotDeleted(memberId, pageable)
-                .map(this::convertToDto);
+                .map(BlogDto::from);
     }
 
     public BlogDto getBlog(Long blogId) {
+        log.info("Getting blog with id: {}", blogId);
         Blog blog = blogRepository.findById(blogId)
-                .orElseThrow(() -> new EntityNotFoundException("블로그를 찾을 수 없습니다."));
-        return convertToDto(blog);
-    }
-
-    private BlogDto convertToDto(Blog blog) {
-        BlogDto dto = new BlogDto();
-        dto.setId(blog.getId());
-        dto.setTitle(blog.getTitle());
-        dto.setContent(blog.getContent());
-        dto.setAuthorName(blog.getMember().getName());
-        dto.setCreatedAt(blog.getCreatedAt());
-        dto.setUpdatedAt(blog.getUpdatedAt());
-        return dto;
+                .orElseThrow(() -> new EntityNotFoundException("Blog not found with id: " + blogId));
+        return BlogDto.from(blog);
     }
 }

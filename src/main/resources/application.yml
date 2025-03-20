@@ -43,8 +43,8 @@ server:
 
 app:
   jwt:
-    secret: your-256-bit-secret-key-here-must-be-longer-than-256-bits
-    expiration-in-ms: 86400000 # 24시간
+    secret: googsu-jwt-secret-key-256-bits-long-enough-for-security
+    expiration: 86400000 # 24시간
 
 springdoc:
   swagger-ui:
