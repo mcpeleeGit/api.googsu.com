@@ -13,35 +13,46 @@ import java.util.Date;
 public class JwtTokenProvider {
 
     private final Key key;
-    private final long jwtExpiration;
+    private final long jwtExpirationInMs;
 
     public JwtTokenProvider(
-            @Value("${jwt.secret}") String jwtSecret,
-            @Value("${jwt.expiration}") long jwtExpiration) {
+            @Value("${app.jwt.secret}") String jwtSecret,
+            @Value("${app.jwt.expiration-in-ms}") long jwtExpirationInMs) {
         this.key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
-        this.jwtExpiration = jwtExpiration;
+        this.jwtExpirationInMs = jwtExpirationInMs;
     }
 
-    public String generateToken(Authentication authentication) {
+    public String createToken(Long userId, String email) {
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + jwtExpiration);
+        Date expiryDate = new Date(now.getTime() + jwtExpirationInMs);
 
         return Jwts.builder()
-                .setSubject(authentication.getName())
+                .setSubject(String.valueOf(userId))
+                .claim("email", email)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(key)
                 .compact();
     }
 
-    public String getUsernameFromToken(String token) {
+    public Long getUserIdFromToken(String token) {
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
 
-        return claims.getSubject();
+        return Long.parseLong(claims.getSubject());
+    }
+
+    public String getEmailFromToken(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+
+        return claims.get("email", String.class);
     }
 
     public boolean validateToken(String token) {

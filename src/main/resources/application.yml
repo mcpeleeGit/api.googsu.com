@@ -1,14 +1,17 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:testdb
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
+    url: jdbc:mysql://localhost:3306/googsu?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
+    username: googsu
+    password: googsu1234
+    driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
   h2:
     console:
       enabled: true
@@ -16,12 +19,6 @@ spring:
   security:
     oauth2:
       client:
-        provider:
-          kakao:
-            authorization-uri: https://kauth.kakao.com/oauth/authorize
-            token-uri: https://kauth.kakao.com/oauth/token
-            user-info-uri: https://kapi.kakao.com/v2/user/me
-            user-name-attribute: id
         registration:
           kakao:
             client-id: ${KAKAO_CLIENT_ID}
@@ -34,10 +31,28 @@ spring:
               - profile_nickname
               - account_email
               - profile_image
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
 
 server:
   port: 8080
 
-jwt:
-  secret: ${JWT_SECRET:dG9rZW5zZWNyZXRrZXl0aGF0aXNhdGxlYXN0MzJjaGFyYWN0ZXJzbG9uZ2ZvcnNlY3VyaXR5}
-  expiration: 86400000 # 24 hours
+app:
+  jwt:
+    secret: your-256-bit-secret-key-here-must-be-longer-than-256-bits
+    expiration-in-ms: 86400000 # 24시간
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+  show-actuator: true
+  packages-to-scan: com.googsu.api.controller
+  paths-to-match: /api/**
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
