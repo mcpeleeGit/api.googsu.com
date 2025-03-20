@@ -1,0 +1,38 @@
+{
+  "index_patterns": ["googsu-logs-*"],
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 0
+  },
+  "mappings": {
+    "properties": {
+      "@timestamp": {
+        "type": "date"
+      },
+      "app_name": {
+        "type": "keyword"
+      },
+      "level": {
+        "type": "keyword"
+      },
+      "logger_name": {
+        "type": "keyword"
+      },
+      "message": {
+        "type": "text"
+      },
+      "thread_name": {
+        "type": "keyword"
+      },
+      "trace_id": {
+        "type": "keyword"
+      },
+      "span_id": {
+        "type": "keyword"
+      },
+      "parent_id": {
+        "type": "keyword"
+      }
+    }
+  }
+} 

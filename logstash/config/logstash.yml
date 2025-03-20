@@ -2,3 +2,9 @@ http.host: "0.0.0.0"
 xpack.monitoring.elasticsearch.hosts: ["http://elasticsearch:9200"]
 path.config: /usr/share/logstash/pipeline
 path.logs: /var/log/logstash
+
+# 템플릿 설정
+template.enabled: true
+template.pattern: "googsu-logs-*"
+template.name: "googsu-logs"
+template.overwrite: true
